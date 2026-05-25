@@ -2743,6 +2743,15 @@ define Device/routerich_ax3000-v1
 endef
 TARGET_DEVICES += routerich_ax3000-v1
 
+define Device/hl_hl3020p
+  DEVICE_MODEL := HL3020P
+  DEVICE_DTS := mt7981b-hl-hl3020p
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_PACKAGES := kmod-mt7915e kmod-mt7981-firmware kmod-usb3 mt7981-wo-firmware
+  IMAGES :=
+endef
+TARGET_DEVICES += hl_hl3020p
+
 define Device/routerich_be7200
   DEVICE_VENDOR := Routerich
   DEVICE_MODEL := BE7200
