@@ -2747,7 +2747,8 @@ define Device/hl_hl3020p
   DEVICE_MODEL := HL3020P
   DEVICE_DTS := mt7981b-hl-hl3020p
   DEVICE_DTS_DIR := ../dts
-  DEVICE_PACKAGES := kmod-mt7915e kmod-mt7981-firmware kmod-usb3 mt7981-wo-firmware
+  DEVICE_PACKAGES := kmod-mt7915e kmod-mt7981-firmware kmod-usb3 mt7981-wo-firmware \
+	luci-ssl block-mount kmod-usb-storage kmod-fs-ext4 kmod-fs-vfat
   IMAGES :=
 endef
 TARGET_DEVICES += hl_hl3020p
