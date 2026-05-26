@@ -8,7 +8,7 @@
 +CONFIG_TEXT_BASE=0x41e00000
 +CONFIG_SYS_MALLOC_F_LEN=0x4000
 +CONFIG_NR_DRAM_BANKS=1
-+CONFIG_DEFAULT_DEVICE_TREE="mt7981-routerich_ax3000"
++CONFIG_DEFAULT_DEVICE_TREE="mt7981-hl3020p"
 +CONFIG_OF_LIBFDT_OVERLAY=y
 +CONFIG_TARGET_MT7981=y
 +CONFIG_SYS_LOAD_ADDR=0x46000000
@@ -20,7 +20,7 @@
 +CONFIG_BOOTDELAY=30
 +CONFIG_AUTOBOOT_KEYED=y
 +CONFIG_AUTOBOOT_MENU_SHOW=y
-+CONFIG_DEFAULT_FDT_FILE="mediatek/mt7981-routerich_ax3000.dtb"
++CONFIG_DEFAULT_FDT_FILE="mediatek/mt7981-hl3020p.dtb"
 +CONFIG_LOGLEVEL=7
 +CONFIG_PRE_CONSOLE_BUFFER=y
 +CONFIG_LOG=y
@@ -109,6 +109,15 @@
 +CONFIG_ZSTD=y
 +CONFIG_HEXDUMP=y
 --- /dev/null
++++ b/arch/arm/dts/mt7981-hl3020p.dts
+@@ -0,0 +1,6 @@
++#include "mt7981-routerich_ax3000.dts"
++
++/ {
++	model = "haolian HL3020P";
++	compatible = "haolian,hl3020p", "mediatek,mt7981";
++};
+--- /dev/null
 +++ b/defenvs/hl3020p_env
 @@ -0,0 +1,58 @@
 +ipaddr=192.168.1.1
@@ -127,7 +136,7 @@
 +bootmenu_confirm_return=askenv - Press ENTER to return to menu ; bootmenu 60
 +bootmenu_default=0
 +bootmenu_delay=0
-+bootmenu_title=      [0;34m( ( ( [1;39mHL3020P OpenWrt[0;34m ) ) )
++bootmenu_title=haolian HL3020P OpenWrt | shenzhen haolian technology co.,ltd | E-Mail:120630151wang@gmail.com | WhatsAPP: +85295209681
 +bootmenu_0=Initialize environment.=run _firstboot
 +bootmenu_0d=Run default boot command.=run boot_default
 +bootmenu_1=Boot system via TFTP.=run boot_tftp ; run bootmenu_confirm_return

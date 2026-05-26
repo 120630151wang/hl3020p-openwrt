@@ -1,0 +1,22 @@
+#!/bin/sh
+
+. /lib/functions/system.sh
+
+[ "$(board_name)" = "hl,hl3020p" ] || exit 0
+
+uci -q set dropbear.main.enable='1'
+uci -q set dropbear.main.Port='22'
+uci -q set dropbear.main.PasswordAuth='on'
+uci -q set dropbear.main.RootPasswordAuth='on'
+uci commit dropbear
+
+cat > /etc/banner <<'EOF'
+haolian HL3020P OpenWrt
+shenzhen haolian technology co.,ltd
+E-Mail:120630151wang@gmail.com
+WhatsAPP: +85295209681
+
+SSH service is enabled on port 22. Set the root password before remote login.
+EOF
+
+exit 0
