@@ -151,7 +151,7 @@
 	pinctrl-0 = <&spi0_flash_pins>;
 	status = "okay";
 
-	/* The tested sample reports a Winbond 256 MiB SPI-NAND in U-Boot and Linux. */
+	/* Production hardware uses a 128 MiB SPI-NAND. */
 	spi_nand@0 {
 		compatible = "spi-nand";
 		reg = <0>;
@@ -218,7 +218,7 @@
 
 			partition@580000 {
 				label = "ubi";
-				reg = <0x580000 0xfa80000>;
+				reg = <0x580000 0x7a80000>;
 				compatible = "linux,ubi";
 
 				volumes {
