@@ -1,0 +1,55 @@
+#!/bin/sh
+
+. /lib/functions/system.sh
+
+[ "$(board_name)" = "hl,hl3020p" ] || {
+	echo "ERROR: this command is only for HL3020P."
+	exit 1
+}
+
+factory="$(awk -F: '$2 ~ /"Factory"/ { print "/dev/" $1; exit }' /proc/mtd)"
+
+echo "Board: $(board_name)"
+echo "RF EEPROM expected location: Factory + 0x0, length 0x1000"
+echo "MAC base expected location: Factory + 0x4, length 0x6"
+if [ -z "$factory" ]; then
+	echo "ERROR: Factory partition not found in /proc/mtd."
+	exit 1
+fi
+
+grep '"Factory"' /proc/mtd
+echo "Factory first 64 bytes (read-only inspection):"
+dd if="$factory" bs=1 count=64 2>/dev/null | hexdump -C
+rf_head="$(dd if="$factory" bs=1 count=16 2>/dev/null | hexdump -v -e '1/1 "%02x"')"
+case "$rf_head" in
+	00000000000000000000000000000000|ffffffffffffffffffffffffffffffff)
+		echo "ERROR: RF calibration area starts empty; do not use this unit for production."
+		rf_error=1
+		;;
+	*)
+		echo "RF calibration area begins with programmed data."
+		rf_error=0
+		;;
+esac
+
+echo
+echo "Persistent settings storage: UBI rootfs_data overlay (/etc/config)"
+mount | grep -E 'overlay|rootfs_data' || echo "WARNING: writable overlay is not visible."
+
+lan_ip="$(uci -q get network.lan.ipaddr)"
+ssid_2g="$(uci -q get wireless.default_radio0.ssid)"
+ssid_5g="$(uci -q get wireless.default_radio1.ssid)"
+mac_lan="$(cat /sys/class/net/br-lan/address 2>/dev/null)"
+echo "LAN IP: ${lan_ip:-unavailable}"
+echo "2.4G SSID: ${ssid_2g:-unavailable}"
+echo "5G SSID: ${ssid_5g:-unavailable}"
+echo "LAN MAC: ${mac_lan:-unavailable}"
+
+if [ -e /lib/firmware/mediatek/mt7981_eeprom_mt7976_dbdc.bin ]; then
+	echo "ERROR: generic RF fallback EEPROM exists; this cannot verify production calibration."
+	exit 2
+fi
+
+echo "Generic RF fallback EEPROM: absent (production validation mode)"
+echo "Check dmesg for EEPROM errors before accepting this unit."
+exit "$rf_error"
