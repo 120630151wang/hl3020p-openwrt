@@ -1,0 +1,21 @@
+#!/bin/sh
+
+. /lib/functions/system.sh
+
+[ "$(board_name)" = "hl,hl3020p" ] || exit 0
+
+# wireless config has been generated before uci-defaults is applied.
+uci -q set wireless.radio0.disabled='0'
+uci -q set wireless.radio1.disabled='0'
+uci -q set wireless.default_radio0.disabled='0'
+uci -q set wireless.default_radio1.disabled='0'
+
+uci -q set wireless.default_radio0.ssid='HL3020P-2G'
+uci -q set wireless.default_radio1.ssid='HL3020P-5G'
+uci -q set wireless.default_radio0.encryption='psk2'
+uci -q set wireless.default_radio1.encryption='psk2'
+uci -q set wireless.default_radio0.key='HL3020P-12345678'
+uci -q set wireless.default_radio1.key='HL3020P-12345678'
+
+uci commit wireless
+exit 0

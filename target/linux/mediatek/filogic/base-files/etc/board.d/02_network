@@ -10,7 +10,7 @@ mediatek_setup_interfaces()
 	case $board in
 	hl,hl3020p)
 		# Keep every RJ45 port reachable while physical WAN/LAN mapping is verified.
-		ucidef_set_interface_lan "lan1 lan2 lan3 eth1"
+		ucidef_set_interface_lan "lan0 lan1 lan2 lan3 eth1"
 		;;
 	abt,asr3000|\
 	buffalo,wsr-6000ax8|\
