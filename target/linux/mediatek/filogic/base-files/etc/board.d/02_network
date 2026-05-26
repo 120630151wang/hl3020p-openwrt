@@ -12,6 +12,10 @@ mediatek_setup_interfaces()
 		# Keep every RJ45 port reachable while physical WAN/LAN mapping is verified.
 		ucidef_set_interface_lan "lan0 lan1 lan2 lan3 eth1"
 		;;
+	hl,hl3020p-rgb|\
+	hl,hl3020p-leds)
+		ucidef_set_interfaces_lan_wan "lan0 lan1 lan2 lan3" eth1
+		;;
 	abt,asr3000|\
 	buffalo,wsr-6000ax8|\
 	cmcc,rax3000m|\

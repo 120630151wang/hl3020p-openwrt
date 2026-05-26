@@ -2,10 +2,13 @@
 
 . /lib/functions/system.sh
 
-[ "$(board_name)" = "hl,hl3020p" ] || {
-	echo "ERROR: this command is only for HL3020P."
-	exit 1
-}
+case "$(board_name)" in
+	hl,hl3020p|hl,hl3020p-rgb|hl,hl3020p-leds) ;;
+	*)
+		echo "ERROR: this command is only for HL3020P."
+		exit 1
+		;;
+esac
 
 factory="$(awk -F: '$2 ~ /"Factory"/ { print "/dev/" $1; exit }' /proc/mtd)"
 

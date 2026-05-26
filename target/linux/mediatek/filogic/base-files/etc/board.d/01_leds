@@ -218,6 +218,16 @@ routerich,ax3000-ubootmod)
 	ucidef_set_led_netdev "wan" "wan" "blue:wan" "wan" "link tx rx"
 	ucidef_set_led_netdev "wan-off" "wan-off" "red:wan" "wan" "link"
 	;;
+hl,hl3020p-leds)
+	ucidef_set_led_default "power" "Power" "hl3020p:power" "1"
+	ucidef_set_led_netdev "wlan2g" "2.4G Wi-Fi" "hl3020p:wlan-2g" "phy0-ap0" "link"
+	ucidef_set_led_netdev "wlan5g" "5G Wi-Fi" "hl3020p:wlan-5g" "phy1-ap0" "link"
+	ucidef_set_led_netdev "p0" "P0 Link" "hl3020p:p0" "lan0" "link"
+	ucidef_set_led_netdev "p2" "P2 Link" "hl3020p:p2" "lan2" "link"
+	ucidef_set_led_netdev "p3" "P3 Link" "hl3020p:p3" "lan3" "link"
+	;;
+hl,hl3020p-rgb)
+	;;
 hl,hl3020p|\
 routerich,ax3000-v1)
 	ucidef_set_led_netdev "lan-1" "lan-1" "blue:lan-1" "lan1" "link tx rx"

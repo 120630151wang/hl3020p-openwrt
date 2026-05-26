@@ -1,0 +1,282 @@
+#!/bin/sh
+
+. /lib/functions.sh
+. /lib/functions/network.sh
+. /lib/functions/system.sh
+
+state_dir="/tmp/hl3020p-led"
+mkdir -p "$state_dir"
+
+case "$(board_name)" in
+	hl,hl3020p-rgb)
+		mode="rgb"
+		;;
+	hl,hl3020p-leds)
+		mode="leds"
+		;;
+	*)
+		echo "ERROR: LED state control is only available on HL3020P-RGB/LEDS."
+		exit 1
+		;;
+esac
+
+probe_targets="1.1.1.1 8.8.8.8"
+interval="5"
+fail_count="3"
+
+load_settings()
+{
+	config_load "hl3020p-led"
+	config_get probe_targets main probe_targets "$probe_targets"
+	config_get interval main interval "$interval"
+	config_get fail_count main fail_count "$fail_count"
+}
+
+led_path()
+{
+	echo "/sys/class/leds/hl3020p:$1"
+}
+
+led_off()
+{
+	local path
+	path="$(led_path "$1")"
+	[ -e "$path/brightness" ] || return 0
+	echo none > "$path/trigger"
+	echo 0 > "$path/brightness"
+}
+
+led_on()
+{
+	local path
+	path="$(led_path "$1")"
+	[ -e "$path/brightness" ] || return 0
+	echo none > "$path/trigger"
+	echo 1 > "$path/brightness"
+}
+
+led_blink()
+{
+	local path="$1"
+	local delay="$2"
+
+	path="$(led_path "$path")"
+	[ -e "$path/trigger" ] || return 0
+	echo timer > "$path/trigger"
+	echo "$delay" > "$path/delay_on"
+	echo "$delay" > "$path/delay_off"
+}
+
+read_value()
+{
+	local value
+	value="$(cat "$state_dir/$1" 2>/dev/null)"
+	echo "${value:-$2}"
+}
+
+write_value()
+{
+	echo "$2" > "$state_dir/$1"
+}
+
+normalize_mesh_state()
+{
+	local mesh now expiry
+	mesh="$(read_value mesh off)"
+	now="$(date +%s)"
+
+	case "$mesh" in
+		success:*|failed:*)
+			expiry="${mesh#*:}"
+			if [ "$now" -ge "$expiry" ]; then
+				write_value mesh off
+				mesh="off"
+			fi
+			;;
+	esac
+
+	echo "$mesh"
+}
+
+render_rgb()
+{
+	local mesh="$1"
+	local wan="$2"
+
+	led_off blue
+	led_off green
+	led_off red
+	case "$mesh" in
+		pairing)
+			led_blink blue 500
+			;;
+		success:*)
+			led_on blue
+			;;
+		failed:*)
+			led_blink red 125
+			;;
+		*)
+			[ "$wan" = "online" ] && led_on green || led_on red
+			;;
+	esac
+}
+
+render_leds()
+{
+	local mesh="$1"
+	local wan="$2"
+
+	led_off wan-blue
+	led_off wan-red
+	[ "$wan" = "online" ] && led_on wan-blue || led_on wan-red
+
+	led_off mesh
+	case "$mesh" in
+		pairing)
+			led_blink mesh 500
+			;;
+		failed:*)
+			led_blink mesh 125
+			;;
+		on)
+			led_on mesh
+			;;
+	esac
+}
+
+render()
+{
+	local mesh wan key previous
+	mesh="$(normalize_mesh_state)"
+	wan="$(read_value wan offline)"
+	key="${mesh}:${wan}"
+	previous="$(read_value rendered none)"
+	[ "$key" = "$previous" ] && return 0
+
+	if [ "$mode" = "rgb" ]; then
+		render_rgb "$mesh" "$wan"
+	else
+		render_leds "$mesh" "$wan"
+	fi
+	write_value rendered "$key"
+}
+
+probe_internet()
+{
+	local ip target
+	network_flush_cache
+	network_get_ipaddr ip wan || return 1
+	[ -n "$ip" ] || return 1
+	for target in $probe_targets; do
+		ping -c 1 -W 1 "$target" >/dev/null 2>&1 && return 0
+	done
+	return 1
+}
+
+update_wan()
+{
+	local failed current
+	current="$(read_value wan offline)"
+	failed="$(read_value failed 0)"
+
+	if probe_internet; then
+		write_value failed 0
+		write_value wan online
+		return 0
+	fi
+
+	failed=$((failed + 1))
+	write_value failed "$failed"
+	if [ "$current" != "online" ] || [ "$failed" -ge "$fail_count" ]; then
+		write_value wan offline
+	fi
+}
+
+set_mesh()
+{
+	local command="$1"
+	local expiry
+
+	case "$command" in
+		pairing)
+			write_value mesh pairing
+			;;
+		success)
+			if [ "$mode" = "rgb" ]; then
+				expiry=$(( $(date +%s) + 15 ))
+				write_value mesh "success:$expiry"
+			else
+				write_value mesh on
+			fi
+			;;
+		failed)
+			expiry=$(( $(date +%s) + 15 ))
+			write_value mesh "failed:$expiry"
+			;;
+		on|off)
+			write_value mesh "$command"
+			;;
+		*)
+			echo "Usage: hl3020p-led mesh {pairing|success|failed|on|off}"
+			exit 1
+			;;
+	esac
+	rm -f "$state_dir/rendered"
+	render
+}
+
+status()
+{
+	echo "Mode: $mode"
+	echo "WAN status: $(read_value wan offline)"
+	echo "WAN failed probes: $(read_value failed 0)"
+	echo "MESH state: $(normalize_mesh_state)"
+	echo "Probe targets: $probe_targets"
+	echo "Probe interval: ${interval}s"
+	echo "Offline threshold: $fail_count"
+}
+
+daemon()
+{
+	local next_probe now
+	write_value wan offline
+	write_value failed 0
+	[ -e "$state_dir/mesh" ] || write_value mesh off
+	rm -f "$state_dir/rendered"
+	next_probe=0
+
+	while true; do
+		now="$(date +%s)"
+		if [ "$now" -ge "$next_probe" ]; then
+			update_wan
+			next_probe=$((now + interval))
+		fi
+		render
+		sleep 1
+	done
+}
+
+load_settings
+
+case "$1" in
+	daemon)
+		daemon
+		;;
+	mesh)
+		set_mesh "$2"
+		;;
+	wan-check)
+		update_wan
+		rm -f "$state_dir/rendered"
+		render
+		status
+		;;
+	status)
+		status
+		;;
+	*)
+		echo "Usage: hl3020p-led {mesh {pairing|success|failed|on|off}|wan-check|status}"
+		exit 1
+		;;
+esac

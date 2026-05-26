@@ -2,7 +2,10 @@
 
 . /lib/functions/system.sh
 
-[ "$(board_name)" = "hl,hl3020p" ] || exit 0
+case "$(board_name)" in
+	hl,hl3020p|hl,hl3020p-rgb|hl,hl3020p-leds) ;;
+	*) exit 0 ;;
+esac
 
 uci -q set dropbear.main.enable='1'
 uci -q set dropbear.main.Port='22'

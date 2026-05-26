@@ -1,0 +1,13 @@
+#!/bin/sh
+
+. /lib/functions/system.sh
+
+[ "$BUTTON" = "wps" ] && [ "$ACTION" = "pressed" ] || exit 0
+
+case "$(board_name)" in
+	hl,hl3020p-rgb|hl,hl3020p-leds)
+		/usr/sbin/hl3020p-led mesh pairing
+		;;
+esac
+
+exit 0

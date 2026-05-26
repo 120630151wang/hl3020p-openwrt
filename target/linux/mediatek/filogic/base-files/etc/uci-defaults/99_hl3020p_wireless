@@ -2,7 +2,10 @@
 
 . /lib/functions/system.sh
 
-[ "$(board_name)" = "hl,hl3020p" ] || exit 0
+case "$(board_name)" in
+	hl,hl3020p|hl,hl3020p-rgb|hl,hl3020p-leds) ;;
+	*) exit 0 ;;
+esac
 
 # Product management settings belong on the writable overlay, never in Factory.
 uci -q set network.lan.ipaddr='192.168.1.1'

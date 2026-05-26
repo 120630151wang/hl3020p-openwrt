@@ -1,0 +1,27 @@
+#!/bin/sh
+
+. /lib/functions/system.sh
+
+case "$(board_name)" in
+	hl,hl3020p-rgb)
+		mode='rgb'
+		;;
+	hl,hl3020p-leds)
+		mode='leds'
+		;;
+	*)
+		exit 0
+		;;
+esac
+
+uci -q batch <<EOF
+set hl3020p-led.main=main
+set hl3020p-led.main.mode='$mode'
+set hl3020p-led.main.probe_targets='1.1.1.1 8.8.8.8'
+set hl3020p-led.main.interval='5'
+set hl3020p-led.main.fail_count='3'
+EOF
+uci commit hl3020p-led
+/etc/init.d/hl3020p-led enable
+
+exit 0

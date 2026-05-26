@@ -1,0 +1,43 @@
+// SPDX-License-Identifier: GPL-2.0-only OR MIT
+
+#include "mt7981b-hl-hl3020p.dts"
+
+/ {
+	model = "haolian HL3020P-RGB";
+	compatible = "hl,hl3020p-rgb", "mediatek,mt7981";
+
+	aliases {
+		led-boot = &led_rgb_blue;
+		led-failsafe = &led_rgb_blue;
+		led-running = &led_rgb_blue;
+		led-upgrade = &led_rgb_blue;
+	};
+
+	leds {
+		/delete-node/ led-0;
+		/delete-node/ led-1;
+		/delete-node/ led-2;
+		/delete-node/ led-3;
+		/delete-node/ led-4;
+		/delete-node/ led-5;
+		/delete-node/ led-6;
+		/delete-node/ led-7;
+		/delete-node/ led-8;
+
+		led_rgb_blue: rgb-blue {
+			label = "hl3020p:blue";
+			gpios = <&pio 9 GPIO_ACTIVE_LOW>;
+			default-state = "on";
+		};
+
+		rgb-green {
+			label = "hl3020p:green";
+			gpios = <&pio 10 GPIO_ACTIVE_LOW>;
+		};
+
+		rgb-red {
+			label = "hl3020p:red";
+			gpios = <&pio 11 GPIO_ACTIVE_LOW>;
+		};
+	};
+};

@@ -1,0 +1,73 @@
+// SPDX-License-Identifier: GPL-2.0-only OR MIT
+
+#include "mt7981b-hl-hl3020p.dts"
+
+/ {
+	model = "haolian HL3020P-LEDS";
+	compatible = "hl,hl3020p-leds", "mediatek,mt7981";
+
+	aliases {
+		led-boot = &led_panel_power;
+		led-failsafe = &led_panel_power;
+		led-running = &led_panel_power;
+		led-upgrade = &led_panel_power;
+	};
+
+	leds {
+		/delete-node/ led-0;
+		/delete-node/ led-1;
+		/delete-node/ led-2;
+		/delete-node/ led-3;
+		/delete-node/ led-4;
+		/delete-node/ led-5;
+		/delete-node/ led-6;
+		/delete-node/ led-7;
+		/delete-node/ led-8;
+
+		wlan-5g {
+			label = "hl3020p:wlan-5g";
+			gpios = <&pio 5 GPIO_ACTIVE_LOW>;
+		};
+
+		wan-red {
+			label = "hl3020p:wan-red";
+			gpios = <&pio 6 GPIO_ACTIVE_HIGH>;
+		};
+
+		led_panel_power: power {
+			label = "hl3020p:power";
+			gpios = <&pio 7 GPIO_ACTIVE_LOW>;
+			default-state = "on";
+		};
+
+		p0 {
+			label = "hl3020p:p0";
+			gpios = <&pio 9 GPIO_ACTIVE_LOW>;
+		};
+
+		p2 {
+			label = "hl3020p:p2";
+			gpios = <&pio 10 GPIO_ACTIVE_LOW>;
+		};
+
+		p3 {
+			label = "hl3020p:p3";
+			gpios = <&pio 11 GPIO_ACTIVE_LOW>;
+		};
+
+		wan-blue {
+			label = "hl3020p:wan-blue";
+			gpios = <&pio 12 GPIO_ACTIVE_LOW>;
+		};
+
+		wlan-2g {
+			label = "hl3020p:wlan-2g";
+			gpios = <&pio 34 GPIO_ACTIVE_LOW>;
+		};
+
+		mesh {
+			label = "hl3020p:mesh";
+			gpios = <&pio 35 GPIO_ACTIVE_LOW>;
+		};
+	};
+};
