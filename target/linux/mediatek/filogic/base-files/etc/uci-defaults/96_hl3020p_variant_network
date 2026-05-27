@@ -1,0 +1,54 @@
+#!/bin/sh
+
+. /lib/functions.sh
+
+case "$(board_name)" in
+hl,hl3020p-rgb|\
+hl,hl3020p-leds)
+	;;
+*)
+	exit 0
+	;;
+esac
+
+lan_ports="$(uci -q get network.br_lan.ports)"
+wan_device="$(uci -q get network.wan.device)"
+repair=0
+
+[ "$wan_device" = "eth1" ] || repair=1
+for port in lan0 lan1 lan2 lan3; do
+	list_contains lan_ports "$port" || repair=1
+done
+
+[ "$repair" -eq 1 ] || exit 0
+
+logger -t hl3020p "restoring variant Ethernet defaults: LAN=lan0 lan1 lan2 lan3, WAN=eth1"
+
+uci -q batch <<EOF
+delete network.br_lan
+set network.br_lan='device'
+set network.br_lan.name='br-lan'
+set network.br_lan.type='bridge'
+add_list network.br_lan.ports='lan0'
+add_list network.br_lan.ports='lan1'
+add_list network.br_lan.ports='lan2'
+add_list network.br_lan.ports='lan3'
+delete network.lan
+set network.lan='interface'
+set network.lan.device='br-lan'
+set network.lan.proto='static'
+set network.lan.ipaddr='192.168.1.1'
+set network.lan.netmask='255.255.255.0'
+set network.lan.ip6assign='60'
+delete network.wan
+set network.wan='interface'
+set network.wan.device='eth1'
+set network.wan.proto='dhcp'
+delete network.wan6
+set network.wan6='interface'
+set network.wan6.device='eth1'
+set network.wan6.proto='dhcpv6'
+commit network
+EOF
+
+exit 0
