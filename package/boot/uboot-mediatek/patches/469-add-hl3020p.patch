@@ -110,12 +110,24 @@
 +CONFIG_HEXDUMP=y
 --- /dev/null
 +++ b/arch/arm/dts/mt7981-hl3020p.dts
-@@ -0,0 +1,6 @@
+@@ -0,0 +1,18 @@
 +#include "mt7981-routerich_ax3000.dts"
 +
 +/ {
 +	model = "haolian HL3020P";
 +	compatible = "haolian,hl3020p", "mediatek,mt7981";
++};
++
++&{/leds/led-3} {
++	label = "blue:rgb";
++};
++
++&{/leds/led-4} {
++	label = "green:rgb";
++};
++
++&{/leds/led-5} {
++	label = "red:rgb";
 +};
 --- /dev/null
 +++ b/defenvs/hl3020p_env
@@ -178,3 +190,54 @@
 +_firstboot=setenv _firstboot ; run ethaddr_factory ; run _switch_to_menu ; run _init_env ; run boot_first
 +_switch_to_menu=setenv _switch_to_menu ; setenv bootdelay 3 ; setenv bootmenu_delay 3 ; setenv bootmenu_0 $bootmenu_0d ; setenv bootmenu_0d ; run _bootmenu_update_title
 +_bootmenu_update_title=setenv _bootmenu_update_title ; setenv bootmenu_title "$bootmenu_title       [33m$ver[0m"
+--- a/board/mediatek/mt7981/mt7981_rfb.c
++++ b/board/mediatek/mt7981/mt7981_rfb.c
+@@ -7,6 +7,7 @@
+ #include <config.h>
+ #include <dm.h>
+ #include <button.h>
++#include <led.h>
+ #include <env.h>
+ #include <init.h>
+ #include <asm/io.h>
+@@ -20,8 +21,39 @@
+ #define CONFIG_RESET_BUTTON_LABEL "reset"
+ #endif
+ 
++static void hl3020p_rgb_led_set(const char *label, enum led_state_t state)
++{
++	struct udevice *dev;
++
++	if (!led_get_by_label(label, &dev))
++		led_set_state(dev, state);
++}
++
++static void hl3020p_rgb_boot_sequence(void)
++{
++	if (!of_machine_is_compatible("haolian,hl3020p"))
++		return;
++
++	hl3020p_rgb_led_set("blue:rgb", LEDST_OFF);
++	hl3020p_rgb_led_set("green:rgb", LEDST_OFF);
++	hl3020p_rgb_led_set("red:rgb", LEDST_ON);
++	mdelay(1000);
++
++	hl3020p_rgb_led_set("red:rgb", LEDST_OFF);
++	hl3020p_rgb_led_set("blue:rgb", LEDST_ON);
++	mdelay(1000);
++
++	hl3020p_rgb_led_set("blue:rgb", LEDST_OFF);
++	hl3020p_rgb_led_set("green:rgb", LEDST_ON);
++	mdelay(1000);
++
++	hl3020p_rgb_led_set("green:rgb", LEDST_OFF);
++}
++
+ int board_late_init(void)
+ {
+ 	struct udevice *dev;
+ 
++	hl3020p_rgb_boot_sequence();
++
+ 	gd->env_valid = ENV_VALID;
+ 	if (!button_get_by_label(CONFIG_RESET_BUTTON_LABEL, &dev)) {
